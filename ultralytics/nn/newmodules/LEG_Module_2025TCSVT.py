@@ -10,7 +10,7 @@ from ultralytics.nn.modules.block import C3k
 
 from ultralytics.nn.modules import Conv, C3k2
 
-
+#The leg module mainly applies edge Gaussian fusion function
 __all__ = ['LEG_Module']
 class DRFD(nn.Module):
     def __init__(self, dim):
@@ -54,12 +54,12 @@ class Conv_Extra(nn.Module):
 class Scharr(nn.Module):
     def __init__(self, channel):
         super(Scharr, self).__init__()
-        # 定义Scharr滤波器
+  
         scharr_x = torch.tensor([[-3., 0., 3.], [-10., 0., 10.], [-3., 0., 3.]], dtype=torch.float32).unsqueeze(0).unsqueeze(0)
         scharr_y = torch.tensor([[-3., -10., -3.], [0., 0., 0.], [3., 10., 3.]], dtype=torch.float32).unsqueeze(0).unsqueeze(0)
         self.conv_x = nn.Conv2d(channel, channel, kernel_size=3, padding=1, groups=channel, bias=False)
         self.conv_y = nn.Conv2d(channel, channel, kernel_size=3, padding=1, groups=channel, bias=False)
-        # 将Sobel滤波器分配给卷积层
+ 
         self.conv_x.weight.data = scharr_x.repeat(channel, 1, 1, 1)
         self.conv_y.weight.data = scharr_y.repeat(channel, 1, 1, 1)
         self.norm = nn.BatchNorm2d(channel)
@@ -67,10 +67,10 @@ class Scharr(nn.Module):
 
     def forward(self, x):
         # show_feature(x)
-        # 应用卷积操作
+ 
         edges_x = self.conv_x(x)
         edges_y = self.conv_y(x)
-        # 计算边缘和高斯分布强度（可以选择不同的方式进行融合，这里使用平方和开根号）
+        # Calculate edge and Gaussian distribution intensity
         scharr_edge = torch.sqrt(edges_x ** 2 + edges_y ** 2)
         scharr_edge = self.norm(scharr_edge)
         out = self.conv_extra(x + scharr_edge)
